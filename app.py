@@ -62,11 +62,6 @@ if uploaded_file is not None:
     class_counts = df[target_column].value_counts()
     valid_classes = class_counts[class_counts >= 2].index
     df = df[df[target_column].isin(valid_classes)].reset_index(drop=True)
-
-    # Safety check
-    if df[target_column].nunique() < 2:
-        st.error("Target must have at least 2 classes after cleaning.")
-        st.stop()
     
     # Separate features and target
     x = df.drop(columns=[target_column])
@@ -81,12 +76,19 @@ if uploaded_file is not None:
     #------------------------------------------
     # Train-Test Spilt
     #------------------------------------------
-    X_train, X_test, y_train, y_test = train_test_split(
-        x,y,
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
         test_size=0.2,
         random_state=42,
         stratify=y
-    )
+        )
+    except ValueError:
+        X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=0.2,
+        random_state=42
+        )
     
     scaler = StandardScaler()
     x_train = scaler.fit_transform(X_train)
@@ -179,6 +181,7 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
 
