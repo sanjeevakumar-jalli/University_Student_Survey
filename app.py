@@ -58,24 +58,19 @@ if uploaded_file is not None:
     # Remove rows where target is missing
     df = df.dropna(subset=[target_column]).reset_index(drop=True)
 
-    # Separate features and target
-    x = df.drop(columns=[target_column])
-    y = df[target_column]
-
     # Remove rare classes
     class_counts = y.value_counts()
     valid_classes = class_counts[class_counts >= 2].index
-
-    X = X[y.isin(valid_classes)]
-    y = y[y.isin(valid_classes)]
-
-    X = X.reset_index(drop=True)
-    y = y.reset_index(drop=True)
+    df = df[df[target_column].isin(valid_classes)].reset_index(drop=True)
 
     # Safety check
     if y.nunique() < 2:
         st.error("Target must have at least 2 classes after cleaning.")
         st.stop()
+    
+    # Separate features and target
+    x = df.drop(columns=[target_column])
+    y = df[target_column]
     
     #Encode Categorical features
     for col in x.select_dtypes(include=["object"]).columns:
@@ -184,6 +179,7 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
 
