@@ -59,7 +59,7 @@ if uploaded_file is not None:
     df = df.dropna(subset=[target_column]).reset_index(drop=True)
 
     # Remove rare classes
-    class_counts = y.value_counts()
+    class_counts = df[target_column].value_counts()
     valid_classes = class_counts[class_counts >= 2].index
     df = df[df[target_column].isin(valid_classes)].reset_index(drop=True)
 
@@ -179,6 +179,7 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
 
