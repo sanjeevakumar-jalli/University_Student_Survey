@@ -4,7 +4,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import(
-    accuracy_score, roc_auc_score, precision_score, recall_score, f1_score, matthews_corrcoef
+    accuracy_score, roc_auc_score,
+    precision_score, recall_score,
+    f1_score, matthews_corrcoef
 )
 
 #Import model trainers
@@ -18,11 +20,20 @@ from Model.xgboost_model import train_model as train_xgb
 pd.set_option("display.max_columns", None)
 
 #----------------Load Dataset---------------------------------
-df = pd.read_csv("data\\world_university_survey_dataset.csv")
+try:
+    df = pd.read_csv("data\\world_university_survey_dataset.csv")
+except FileNotFoundError:
+    raise FileNotFoundError("Dataset file not found. Check path")
+except Exception as e:
+    raise RuntimeError(f"Error reading dataset: {e}")
+
+if df.empty:
+    raise ValueError("Dataset empty")
 
 #-----------------View columns--------------------------------
 print("Dataset Shape:", df.shape)
 print("Columns", df.columns)
+
 
 #------------------Target Selection--------------------------
 target_column = None
@@ -32,30 +43,49 @@ for col in df.columns:
         break
 
 if target_column is None:
-    raise ValueError("No suitable target column found!")
+    raise ValueError("No suitable categorical target column found!")
 
 print("\nSelected Target Column:", target_column)
+
+# Drop missing target values
+df = df.dropna(subset=[target_column]).reset_index(drop=True)
+
+if(df[target_column].nunique() < 2):
+    raise ValueError("The minimum number of samples in target column is 2")
+
 
 X = df.drop(columns=[target_column])
 y = df[target_column]
 
-label_encoders = {}
-
 #---------------------Encoding-------------------------------
-for col in X.select_dtypes(include=["object"]).columns:
-    le = LabelEncoder()
-    X[col] = le.fit_transform(X[col])
-    label_encoders[col] = le
+label_encoders = {}
+try:
+    for col in X.select_dtypes(include=["object"]).columns:
+        le = LabelEncoder()
+        X[col] = le.fit_transform(X[col])
+        label_encoders[col] = le
 
-y = LabelEncoder().fit_transform(y)
+    y = LabelEncoder().fit_transform(y)
+except Exception as e:
+    raise RuntimeError(f"Error encoding labels: {e}")
 
-X_train, X_test, y_train, y_test = train_test_split(
+#------------------------Train Test Split--------------------
+try:
+    X_train, X_test, y_train, y_test = train_test_split(
     X,
-    y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
-)
+            y,
+            test_size=0.2,
+            random_state=42,
+            stratify=y
+    )
+except ValueError:
+    print("Stratified split failed. Using random split.")
+    X_train, X_test, y_train, y_test = train_test_split(
+    X,
+            y,
+            test_size=0.2,
+            random_state=42
+    )
 
 #----------------Scaling---------------
 scaler = StandardScaler()
@@ -63,7 +93,7 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 
-#---------------------Evaluation---------------------------
+#---------------------Evaluation function---------------------------
 def evaluate_model(model):
     y_pred = model.predict(X_test)
     n_classes = len(np.unique(y_test))
@@ -98,14 +128,37 @@ def evaluate_model(model):
     }
 
 # ---------------- Train Models ----------------
-models = {
-    "Logistic Regression": train_lr(X_train, y_train),
-    "Decision Tree": train_dt(X_train, y_train),
-    "KNN": train_knn(X_train, y_train),
-    "Naive Bayes": train_nb(X_train, y_train),
-    "Random Forest": train_rf(X_train, y_train),
-    "XGBoost": train_xgb(X_train, y_train)
-}
+models = {}
+
+try:
+    models["Logistic Regression"] = train_lr(X_train, y_train)
+except Exception as e:
+    print("Logistic Regression failed:", e)
+
+try:
+    models["Decision Tree"] = train_dt(X_train, y_train)
+except Exception as e:
+    print("Decision Tree failed:", e)
+
+try:
+    models["KNN"] = train_knn(X_train, y_train)
+except Exception as e:
+    print("KNN failed:", e)
+
+try:
+    models["Naive Bayes"] = train_nb(X_train, y_train)
+except Exception as e:
+    print("Naive Bayes failed:", e)
+
+try:
+    models["Random Forest"] = train_rf(X_train, y_train)
+except Exception as e:
+    print("Random Forest failed:", e)
+
+try:
+    models["XGBoost"] = train_xgb(X_train, y_train)
+except Exception as e:
+    print("XGBoost failed:", e)
 
 # ---------------- Results ----------------
 results = []
@@ -117,7 +170,3 @@ for name, model in models.items():
 results_df = pd.DataFrame(results)
 print("\n=== MODEL COMPARISON TABLE ===\n")
 print(results_df)
-
-
-
-
