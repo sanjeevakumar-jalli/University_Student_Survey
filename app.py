@@ -39,9 +39,8 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-
-st.subheader("Dataset Preview")
-st.dataframe(df.head())
+    st.subheader("Dataset Preview")
+    st.dataframe(df.head())
     
 #---------------------------------------------
 # Target Selection
@@ -161,5 +160,6 @@ st.pyplot(fig)
 # ------------------------------------------------
 st.subheader("Classification Report")
 st.text(classification_report(y_test, y_pred))
+
 
 
