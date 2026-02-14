@@ -39,7 +39,42 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    st.subheader("Dataset Preview")
+    # -------------------------------
+    # DATA CLEANING (VERY IMPORTANT)
+    # -------------------------------
+    
+    # 1. Remove completely empty rows
+    df = df.dropna(how="all")
+    
+    # 2. Remove leading/trailing spaces from column names
+    df.columns = df.columns.str.strip()
+    
+    # 3. Remove rows where target is missing
+    df = df.dropna(subset=[target_column])
+    
+    # 4. Reset index after drops
+    df = df.reset_index(drop=True)
+    
+    # -------------------------------
+    # Separate features and target
+    # -------------------------------
+    X = df.drop(columns=[target_column])
+    y = df[target_column]
+    
+    # -------------------------------
+    # Remove rare classes (count < 2)
+    # -------------------------------
+    class_counts = y.value_counts()
+    valid_classes = class_counts[class_counts >= 2].index
+    
+    X = X[y.isin(valid_classes)]
+    y = y[y.isin(valid_classes)]
+    
+    # Reset index again
+    X = X.reset_index(drop=True)
+    y = y.reset_index(drop=True)
+    
+    st.subheader("Clean Dataset Preview")
     st.dataframe(df.head())
     
     #---------------------------------------------
@@ -162,5 +197,6 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
