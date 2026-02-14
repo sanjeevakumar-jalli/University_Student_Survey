@@ -207,3 +207,4 @@ if uploaded_file is not None:
     # ------------------------------------------------
     st.subheader("Classification Report")
     st.text(classification_report(y_test, y_pred))
+
