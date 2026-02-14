@@ -66,6 +66,11 @@ if uploaded_file is not None:
     # Separate features and target
     x = df.drop(columns=[target_column])
     y = df[target_column]
+
+    # Safety check
+    if df[target_column].nunique() < 2:
+        st.error("This is NOT suitable as a classification target.\nTarget column must have at least 2 classes after cleaning.\nPlease Select some other target")
+        st.stop()
     
     #Encode Categorical features
     for col in x.select_dtypes(include=["object"]).columns:
@@ -181,6 +186,7 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
 
