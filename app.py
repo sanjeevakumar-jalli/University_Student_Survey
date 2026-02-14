@@ -24,7 +24,7 @@ from Model.xgboost_model import train_model as train_xgb
 # ------------------------------------------
 # Streamlit UI
 #-------------------------------------------
-set.set_page_config(page_title="ML Assignment 2", layout="wide")
+st.set_page_config(page_title="ML Assignment 2", layout="wide")
 
 st.title("World University Student Survey - Classification App")
 st.write("Upload test dataset, select a model and view performance metrics.")
@@ -51,7 +51,7 @@ x = df.drop(columns=[target_column])
 y = df[target_column]
 
 #Encode Categorical features
-for col in x.select_dtypes(include=["objecct"]).columns:
+for col in x.select_dtypes(include=["object"]).columns:
     x[col] = LabelEncoder().fit_transform(x[col])
 
 y = LabelEncoder().fit_transform(y)
@@ -155,3 +155,4 @@ st.pyplot(fig)
 # ------------------------------------------------
 st.subheader("Classification Report")
 st.text(classification_report(y_test, y_pred))
+
