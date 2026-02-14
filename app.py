@@ -64,7 +64,7 @@ if uploaded_file is not None:
     df = df[df[target_column].isin(valid_classes)].reset_index(drop=True)
 
     # Safety check
-    if y.nunique() < 2:
+    if df[target_column].nunique() < 2:
         st.error("Target must have at least 2 classes after cleaning.")
         st.stop()
     
@@ -179,6 +179,7 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
 
