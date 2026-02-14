@@ -38,44 +38,12 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    # -------------------------------
-    # DATA CLEANING (VERY IMPORTANT)
-    # -------------------------------
-    
-    # 1. Remove completely empty rows
-    df = df.dropna(how="all")
-    
-    # 2. Remove leading/trailing spaces from column names
-    df.columns = df.columns.str.strip()
-    
-    # 3. Remove rows where target is missing
-    df = df.dropna(subset=[target_column])
-    
-    # 4. Reset index after drops
-    df = df.reset_index(drop=True)
-    
-    # -------------------------------
-    # Separate features and target
-    # -------------------------------
-    X = df.drop(columns=[target_column])
-    y = df[target_column]
-    
-    # -------------------------------
-    # Remove rare classes (count < 2)
-    # -------------------------------
-    class_counts = y.value_counts()
-    valid_classes = class_counts[class_counts >= 2].index
-    
-    X = X[y.isin(valid_classes)]
-    y = y[y.isin(valid_classes)]
-    
-    # Reset index again
-    X = X.reset_index(drop=True)
-    y = y.reset_index(drop=True)
-    
+    df = pd.read_csv(uploaded_file)   
     st.subheader("Clean Dataset Preview")
     st.dataframe(df.head())
+
+    df.columns = df.columns.str.strip()
+    df = df.dropna(how="all")
     
     #---------------------------------------------
     # Target Selection
@@ -86,9 +54,28 @@ if uploaded_file is not None:
         "Select target column",
         options= df.columns
     )
-    
+
+    # Remove rows where target is missing
+    df = df.dropna(subset=[target_column]).reset_index(drop=True)
+
+    # Separate features and target
     x = df.drop(columns=[target_column])
     y = df[target_column]
+
+    # Remove rare classes
+    class_counts = y.value_counts()
+    valid_classes = class_counts[class_counts >= 2].index
+
+    X = X[y.isin(valid_classes)]
+    y = y[y.isin(valid_classes)]
+
+    X = X.reset_index(drop=True)
+    y = y.reset_index(drop=True)
+
+    # Safety check
+    if y.nunique() < 2:
+        st.error("Target must have at least 2 classes after cleaning.")
+        st.stop()
     
     #Encode Categorical features
     for col in x.select_dtypes(include=["object"]).columns:
@@ -197,6 +184,7 @@ if uploaded_file is not None:
     st.text(classification_report(y_test, y_pred))
     
     
+
 
 
 
