@@ -29,14 +29,20 @@ st.set_page_config(page_title="ML Assignment 2", layout="wide")
 st.title("World University Student Survey - Classification App")
 st.write("Upload test dataset, select a model and view performance metrics.")
 
-# --------------------------------------------
-# Load Dataset
-#---------------------------------------------
-df = pd.read_csv("data\\world_university_survey_dataset.csv")
+# ------------------------------------------------
+# Dataset Upload
+# ------------------------------------------------
+uploaded_file = st.file_uploader(
+    "Upload CSV file (Test Data Only)",
+    type=["csv"]
+)
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
 
 st.subheader("Dataset Preview")
 st.dataframe(df.head())
-
+    
 #---------------------------------------------
 # Target Selection
 #---------------------------------------------
@@ -155,4 +161,5 @@ st.pyplot(fig)
 # ------------------------------------------------
 st.subheader("Classification Report")
 st.text(classification_report(y_test, y_pred))
+
 
